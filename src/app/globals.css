@@ -1,26 +1,69 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@layer base {
+  :root {
+    --background: #f9fafb; /* Tailwinds gray-50 */
+    --foreground: #111827; /* Tailwinds gray-900 */
+    --primary: #2563eb; /* Tailwinds blue-600 */
+    --midnight-blue: #1e293b;
+    --card-surface: #ffffff;
+    --border-subtle: #e5e7eb; /* Tailwinds gray-200 */
+  }
+
+  [data-theme='dark'] {
+    --background: #111827;
+    --foreground: #f9fafb;
+    --primary: #3b82f6; /* Tailwinds blue-500 */
+    --card-surface: #1f2937;
+    --border-subtle: #374151;
+  }
+
+  body {
+    @apply bg-background text-foreground selection:bg-primary/20;
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-surface: var(--card-surface);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer components {
+  /* Flattened card styles */
+  .glass-card, .dashboard-card {
+    @apply bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-lg;
+  }
+  
+  /* Removed glow for standard borders */
+  .glow-border {
+    @apply border border-slate-200 dark:border-slate-700 rounded-lg transition-colors hover:border-blue-500;
+  }
+
+  /* Solid accent headers instead of gradient */
+  .premium-gradient {
+    @apply bg-slate-900 text-white;
+  }
+
+  .teal-gradient, .primary-bg {
+    @apply bg-blue-600 text-white;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Custom Scrollbars Minimal */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }
