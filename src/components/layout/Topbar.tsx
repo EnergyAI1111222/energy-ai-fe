@@ -1,6 +1,9 @@
 "use client";
 import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useAppStore } from '@/store/useAppStore';
+import { useAuthProfile } from '@/hooks/useAuthProfile';
+import { UserButton } from '@clerk/nextjs';
 
 export function Topbar() {
   const router = useRouter();
