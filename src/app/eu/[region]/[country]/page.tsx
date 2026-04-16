@@ -378,14 +378,14 @@ export default function CountryDashboardPage(
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 mb-10">
         <KPICard
           label="Current Load"
-          value={kpi.current_load ? `${kpi.current_load} GW` : '—'}
+          value={kpi.current_load ? `${Number(kpi.current_load).toFixed(1)} MW` : '—'}
           deltaText={kpi.load_delta ?? '—'}
           deltaTrend={kpi.load_trend ?? 'neutral'}
           isLoading={kpiLoading}
         />
         <KPICard
           label="Residual Load"
-          value={kpi.residual_load ? `${kpi.residual_load} GW` : '—'}
+          value={kpi.residual_load ? `${Number(kpi.residual_load).toFixed(1)} MW` : '—'}
           deltaText={kpi.residual_delta ?? '—'}
           deltaTrend={kpi.residual_trend ?? 'neutral'}
           isLoading={kpiLoading}
@@ -393,7 +393,7 @@ export default function CountryDashboardPage(
         <KPICard
           label="Main Gen Source"
           value={kpi.main_source ?? '—'}
-          deltaText={kpi.main_source_mw ? `${kpi.main_source_mw} GW` : '—'}
+          deltaText={kpi.main_source_mw ? `${Number(kpi.main_source_mw).toFixed(0)} MW` : '—'}
           deltaTrend="neutral"
           isLoading={kpiLoading}
         />
