@@ -24,6 +24,7 @@ export default function PicassoPage() {
   const [layers, setLayers] = useState<PicassoLayer[]>([]);
   const [activeTab, setActiveTab] = useState<'catalog' | 'config'>('catalog');
   const [search, setSearch] = useState("");
+  const [mode, setMode] = useState<'line' | 'stack' | 'delta'>('line');
 
   const datasetIds = useMemo(() => layers.map(l => l.dataset_id), [layers]);
   const { data: liveData, isLoading: liveLoading } = useLiveEnergyData(datasetIds);
@@ -182,11 +183,26 @@ export default function PicassoPage() {
                        </div>
                        <h2 className="text-2xl font-bold tracking-tight text-white/90">Multi-Series Comparison</h2>
                     </div>
-                    <div className="flex items-center bg-black/60 backdrop-blur border border-white/5 p-1.5 rounded-lg gap-1 shadow-2xl">
-                       <button className="px-4 py-1.5 rounded-xl text-[10px] font-bold bg-[#2563eb] text-black">Line</button>
-                       <button className="px-4 py-1.5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white">Stack</button>
-                       <button className="px-4 py-1.5 rounded-xl text-[10px] font-bold text-slate-400 hover:text-white">Delta</button>
-                    </div>
+                     <div className="flex items-center bg-black/60 backdrop-blur border border-white/5 p-1.5 rounded-lg gap-1 shadow-2xl">
+                        <button 
+                          onClick={() => setMode('line')}
+                          className={`px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all ${mode === 'line' ? 'bg-[#2563eb] text-black' : 'text-slate-400 hover:text-white'}`}
+                        >
+                          Line
+                        </button>
+                        <button 
+                          onClick={() => setMode('stack')}
+                          className={`px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all ${mode === 'stack' ? 'bg-[#2563eb] text-black' : 'text-slate-400 hover:text-white'}`}
+                        >
+                          Stack
+                        </button>
+                        <button 
+                          onClick={() => setMode('delta')}
+                          className={`px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all ${mode === 'delta' ? 'bg-[#2563eb] text-black' : 'text-slate-400 hover:text-white'}`}
+                        >
+                          Delta
+                        </button>
+                     </div>
                  </div>
 
                  <div className="flex-1 pt-10">
@@ -206,15 +222,17 @@ export default function PicassoPage() {
                              splitLine: { lineStyle: { color: 'rgba(255,255,255,0.02)', type: 'dashed' } },
                              axisLabel: { color: '#475569', fontSize: 10 }
                           },
-                          series: layers.map(l => ({
-                             name: l.name,
-                             type: 'line',
-                             color: l.color,
-                             smooth: true,
-                             showSymbol: false,
-                             lineStyle: { width: 3 },
-                             data: results[l.dataset_id]?.data || []
-                          }))
+                           series: layers.filter(l => l.visible).map(l => ({
+                              name: l.name,
+                              type: 'line',
+                              color: l.color,
+                              smooth: true,
+                              stack: mode === 'stack' ? 'total' : undefined,
+                              areaStyle: mode === 'stack' ? { opacity: 0.3 } : undefined,
+                              showSymbol: false,
+                              lineStyle: { width: 3 },
+                              data: results[l.dataset_id]?.data || []
+                           }))
                        }}
                     />
                  </div>

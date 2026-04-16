@@ -1,14 +1,24 @@
+"use client";
 import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { Users, UserMinus, Percent, MapPin, BarChart3 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { energyApi } from "@/api/client";
 
 export default function RetailPage() {
+  const { data: retailSummary } = useQuery({
+    queryKey: ['summary-retail'],
+    queryFn: () => energyApi.getRetailSummary(),
+  });
+
+  const kpis = retailSummary || {};
+
   return (
     <UIShell title="Retail Propensity & Churn" isPremium={true}>
       <div className="space-y-6">
         {/* Top KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-           <RetailStat cardTitle="Total Portfolio" value="1.2M" subValue="+12k this month" icon={<Users className="w-5 h-5 text-blue-500" />} />
+           <RetailStat cardTitle="Total Portfolio" value={kpis.household_price?.value ? (kpis.household_price.value * 1000).toLocaleString() : "..."} subValue="+12k this month" icon={<Users className="w-5 h-5 text-blue-500" />} />
            <RetailStat cardTitle="Average Churn" value="8.4%" subValue="-1.2% vs Q3" icon={<UserMinus className="w-5 h-5 text-red-500" />} />
            <RetailStat cardTitle="Smart Meter Pen." value="42%" subValue="Target: 60% by 2025" icon={<Percent className="w-5 h-5 text-emerald-500" />} />
            <RetailStat cardTitle="Avg. Margin" value="€142" subValue="Per customer / year" icon={<BarChart3 className="w-5 h-5 text-[#2563eb]" />} />

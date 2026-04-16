@@ -1,8 +1,15 @@
+"use client";
 import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { Zap, Gauge, Server, AlertTriangle, TrendingDown } from "lucide-react";
+import { useLiveEnergyData } from "@/hooks/useLiveEnergyData";
 
 export default function ImbalanceCapacityPage() {
+  // Mapping real dataset IDs for Imbalance (adjust as needed for your DB)
+  const datasetIds = ["378", "375", "2619"]; 
+  const { data, isLoading } = useLiveEnergyData(datasetIds);
+  const results = data?.results || {};
+
   return (
     <UIShell title="System Imbalance & Capacity" isPremium={true}>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -10,9 +17,9 @@ export default function ImbalanceCapacityPage() {
         {/* Left Column: Real-time Frequency/Imbalance */}
         <div className="lg:col-span-3 space-y-6">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <StatCard title="System Frequency" value="50.02" unit="Hz" status="STABLE" color="text-emerald-500" icon={<Gauge className="w-5 h-5" />} />
-              <StatCard title="Net Imbalance" value="-142" unit="MW" status="SHORT" color="text-red-500" icon={<TrendingDown className="w-5 h-5" />} />
-              <StatCard title="Reserve Capacity" value="4.2" unit="GW" status="ADEQUATE" color="text-blue-500" icon={<Server className="w-5 h-5" />} />
+              <StatCard title="System Frequency" value={results["378"]?.data?.[results["378"]?.data?.length-1]?.[1] ?? "50.02"} unit="Hz" status="STABLE" color="text-emerald-500" icon={<Gauge className="w-5 h-5" />} />
+              <StatCard title="Net Imbalance" value={results["375"]?.data?.[results["375"]?.data?.length-1]?.[1] ?? "-"} unit="MW" status="SHORT" color="text-red-500" icon={<TrendingDown className="w-5 h-5" />} />
+              <StatCard title="Reserve Capacity" value={results["2619"]?.data?.[results["2619"]?.data?.length-1]?.[1] ?? "-"} unit="GW" status="ADEQUATE" color="text-blue-500" icon={<Server className="w-5 h-5" />} />
            </div>
 
            <div className="bg-white rounded-xl p-6 border border-slate-200 shadow-sm">
