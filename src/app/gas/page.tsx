@@ -1,3 +1,4 @@
+"use client";
 import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { Flame, Droplets, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";

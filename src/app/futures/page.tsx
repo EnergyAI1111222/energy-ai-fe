@@ -1,3 +1,4 @@
+"use client";
 import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { TrendingUp, Coins, Fuel, BarChart } from "lucide-react";
