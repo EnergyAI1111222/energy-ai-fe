@@ -3,26 +3,54 @@ import React from 'react';
 import { ComboAreaLineChart } from "@/components/charts/templates/ComboAreaLineChart";
 import { StackedAreaChart } from "@/components/charts/templates/StackedAreaChart";
 import { NodalMap } from "@/components/maps/NodalMap";
-import { Map, Info, Zap, Download } from 'lucide-react';
+import { Map, Info, Zap, Download, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
+import { energyApi } from '@/api/client';
+
+const COUNTRY_NAMES: Record<string, string> = {
+  DE: 'Germany', FR: 'France', NL: 'Netherlands', BE: 'Belgium',
+  AT: 'Austria', CH: 'Switzerland', UK: 'United Kingdom', EUX: 'EU Exchange',
+};
 
 export default function RegionDashboardPage(props: { params: Promise<{ region: string }> }) {
   const params = React.use(props.params);
   const regionName = (params.region || "").toUpperCase();
+
+  const { data: euData, isLoading } = useQuery({
+    queryKey: ['euTable'],
+    queryFn: () => energyApi.getEuTable(),
+    refetchInterval: 60000,
+  });
 
   const mockTimeseries: [number, number][] = Array.from({ length: 48 }, (_, i) => {
     const d = new Date(); d.setHours(i % 24, 0, 0, 0);
     return [d.getTime(), Math.round(Math.random() * 80 + 20)];
   });
 
-  const regionCountries = [
-    { code: 'DE', name: 'Germany', price: 68.42, delta: '+2.1%', trend: 'up' },
-    { code: 'FR', name: 'France', price: 62.10, delta: '-4.1%', trend: 'down' },
-    { code: 'BE', name: 'Belgium', price: 71.15, delta: '+8.2%', trend: 'up' },
-    { code: 'NL', name: 'Netherlands', price: 69.90, delta: '+1.5%', trend: 'up' },
-    { code: 'CH', name: 'Switzerland', price: 64.20, delta: '-1.0%', trend: 'down' },
-    { code: 'AT', name: 'Austria', price: 67.50, delta: '+3.4%', trend: 'up' },
-  ];
+  // Use API data if available, else fallback to demo
+  const regionCountries = React.useMemo(() => {
+    const apiResults = euData?.results as Array<{ zone: string; spot_today: number | null; forecast: number | null }> | undefined;
+    if (apiResults && apiResults.length > 0) {
+      return apiResults.map(r => ({
+        code: r.zone,
+        name: COUNTRY_NAMES[r.zone] || r.zone,
+        price: r.spot_today,
+        intraday: r.forecast ?? (r.spot_today ? r.spot_today * 1.05 : null),
+        delta: null,
+        trend: 'up' as const,
+      }));
+    }
+    // Fallback demo data
+    return [
+      { code: 'DE', name: 'Germany', price: null, intraday: null, delta: null, trend: 'up' as const },
+      { code: 'FR', name: 'France', price: null, intraday: null, delta: null, trend: 'down' as const },
+      { code: 'BE', name: 'Belgium', price: null, intraday: null, delta: null, trend: 'up' as const },
+      { code: 'NL', name: 'Netherlands', price: null, intraday: null, delta: null, trend: 'up' as const },
+      { code: 'CH', name: 'Switzerland', price: null, intraday: null, delta: null, trend: 'down' as const },
+      { code: 'AT', name: 'Austria', price: null, intraday: null, delta: null, trend: 'up' as const },
+    ];
+  }, [euData]);
 
   return (
     <div className="p-4 md:p-6 flex flex-col mx-auto w-full max-w-[1700px] h-full overflow-y-auto">
@@ -42,13 +70,15 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[450px,1fr] gap-6 mb-8">
-         {/* Top Left: Region Master Table */}
+         {/* Market Table */}
          <div className="bg-white border border-slate-200 rounded-lg shadow-sm overflow-hidden flex flex-col h-[450px]">
              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                 <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2">
                    <Zap className="w-4 h-4 text-slate-400" /> {regionName} Market Evaluation
                 </h3>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">Last 15m update</span>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                  {isLoading ? 'Loading...' : 'Live'}
+                </span>
              </div>
              <div className="flex-1 overflow-y-auto">
                 <table className="w-full text-left">
@@ -61,7 +91,11 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
                       </tr>
                    </thead>
                    <tbody className="divide-y divide-slate-100">
-                      {regionCountries.map((c) => (
+                      {isLoading ? (
+                        <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">
+                          <Loader2 className="w-5 h-5 animate-spin mx-auto" />
+                        </td></tr>
+                      ) : regionCountries.map((c) => (
                          <tr key={c.code} className="hover:bg-slate-50/80 transition-colors group">
                             <td className="px-4 py-4">
                                <div className="flex items-center gap-3">
@@ -71,13 +105,17 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
                                   <Link href={`/eu/${params.region}/${c.code.toLowerCase()}`} className="text-sm font-bold text-slate-700 hover:text-[#2563eb] transition-colors">{c.name}</Link>
                                </div>
                             </td>
-                            <td className="px-4 py-4 text-sm font-mono text-slate-900 font-bold">€ {c.price}</td>
-                            <td className="px-4 py-4 text-sm font-mono text-slate-500">€ {(c.price * 1.05).toFixed(2)}</td>
+                            <td className="px-4 py-4 text-sm font-mono text-slate-900 font-bold">
+                              {c.price != null ? `€ ${c.price.toFixed(2)}` : '—'}
+                            </td>
+                            <td className="px-4 py-4 text-sm font-mono text-slate-500">
+                              {c.intraday != null ? `€ ${c.intraday.toFixed(2)}` : '—'}
+                            </td>
                             <td className="px-4 py-4">
                                <span className={`text-[11px] font-bold px-2 py-0.5 rounded flex items-center gap-1 w-max ${
                                   c.trend === 'up' ? 'bg-amber-50 text-amber-600' : 'bg-emerald-50 text-emerald-600'
                                }`}>
-                                  {c.delta}
+                                  {c.delta ?? '—'}
                                </span>
                             </td>
                          </tr>
@@ -90,22 +128,12 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
              </div>
          </div>
 
-         {/* Top Right: Regional Nodal Heatmap */}
+         {/* Nodal Heatmap */}
          <div className="h-[450px] bg-white rounded-lg border border-slate-200 shadow-sm relative overflow-hidden group">
             <NodalMap mapType="heatmap" metric="Regional Pressure" />
             <div className="absolute top-4 left-6 z-10 flex flex-col gap-1 pointer-events-none">
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest drop-shadow-sm">Spatial Interpolation</span>
                 <h4 className="text-xl font-bold text-slate-900 uppercase tracking-tight drop-shadow-sm">{regionName} Intensity Matrix</h4>
-            </div>
-            <div className="absolute bottom-4 left-6 z-10 flex items-center gap-2">
-                <div className="flex gap-1 items-center bg-white/95 border border-slate-200 border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
-                   <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                   <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Wind Pressure</span>
-                </div>
-                <div className="flex gap-1 items-center bg-white/95 border border-slate-200 border border-slate-200 px-3 py-1.5 rounded-full shadow-sm">
-                   <div className="w-2 h-2 rounded-full bg-amber-500"></div>
-                   <span className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">Pricing Heat</span>
-                </div>
             </div>
          </div>
       </div>
