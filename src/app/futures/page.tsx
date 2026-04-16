@@ -1,8 +1,16 @@
 import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { TrendingUp, Coins, Fuel, BarChart } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { energyApi } from "@/api/client";
 
 export default function FuturesPage() {
+  const { data: futures } = useQuery({
+    queryKey: ['summary-futures'],
+    queryFn: () => energyApi.getFuturesSummary(),
+  });
+
+  const kpis = futures || {};
   return (
     <UIShell title="Futures, Fuels & Spreads" isPremium={true}>
       <div className="space-y-6">
@@ -52,11 +60,11 @@ export default function FuturesPage() {
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
                  <Fuel className="w-4 h-4 text-[#2563eb]" /> Fuel Benchmarks
               </h3>
-              <div className="space-y-4">
-                 <FuelRow label="CO2 EUA Dec-24" value="68.42" unit="€/t" delta="+1.2%" />
-                 <FuelRow label="Coal API2 Cal-25" value="112.50" unit="$/t" delta="-0.8%" />
-                 <FuelRow label="Brent Crude" value="84.20" unit="$/bbl" delta="+0.4%" />
-              </div>
+               <div className="space-y-4">
+                  <FuelRow label="CO2 EUA" value={kpis.carbon?.value ?? "..."} unit="€/t" delta="+1.2%" />
+                  <FuelRow label="Coal API2" value={kpis.coal?.value ?? "..."} unit="$/t" delta="-0.8%" />
+                  <FuelRow label="Brent Crude" value="84.20" unit="$/bbl" delta="+0.4%" />
+               </div>
            </div>
 
            {/* Spread Analysis */}

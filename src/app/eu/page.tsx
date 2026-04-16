@@ -7,12 +7,20 @@ import { DualAxisBarLineChart } from "@/components/charts/templates/DualAxisBarL
 import { StackedAreaChart } from "@/components/charts/templates/StackedAreaChart";
 import { NodalMap } from "@/components/maps/NodalMap";
 import { Layers, Activity, TrendingUp } from 'lucide-react';
+import { useQuery } from "@tanstack/react-query";
+import { energyApi } from "@/api/client";
 
 export default function EUOverviewPage() {
   // Mapping real dataset IDs from our Catalog
   const datasetIds = ["2921", "378", "375", "2619"]; 
   const { data, isLoading } = useLiveEnergyData(datasetIds);
   const results = data?.results || {};
+
+  // Fetch real count from catalog
+  const { data: catalogData } = useQuery({
+    queryKey: ['catalog-stats'],
+    queryFn: () => energyApi.getCatalog(),
+  });
 
   return (
     <div className="p-4 md:p-6 h-full flex flex-col mx-auto w-full max-w-[1800px] overflow-y-auto">
@@ -22,7 +30,7 @@ export default function EUOverviewPage() {
            <p className="text-slate-500 flex items-center gap-2"><Activity className="w-4 h-4 text-[#2563eb]" /> Cross-border spot convergence and regional stability matrix.</p>
         </div>
         <div className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg shadow-sm text-xs font-bold text-slate-600">
-           <Layers className="w-4 h-4 text-slate-400" /> ACTIVE DATASETS: 412
+           <Layers className="w-4 h-4 text-slate-400" /> ACTIVE DATASETS: {catalogData?.total ?? '...'}
         </div>
       </div>
 

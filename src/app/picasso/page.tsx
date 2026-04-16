@@ -21,10 +21,7 @@ type PicassoLayer = {
 }
 
 export default function PicassoPage() {
-  const [layers, setLayers] = useState<PicassoLayer[]>([
-    { id: '1', name: 'DE Price', dataset_id: '4331', color: '#2563eb', visible: true, order: 0 },
-    { id: '2', name: 'FR Price', dataset_id: '4332', color: '#ff6b6b', visible: true, order: 1 }
-  ]);
+  const [layers, setLayers] = useState<PicassoLayer[]>([]);
   const [activeTab, setActiveTab] = useState<'catalog' | 'config'>('catalog');
   const [search, setSearch] = useState("");
 

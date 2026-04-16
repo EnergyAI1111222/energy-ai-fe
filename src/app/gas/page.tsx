@@ -1,16 +1,25 @@
 import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { Flame, Droplets, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { energyApi } from "@/api/client";
 
 export default function GasPage() {
+  const { data: gasSummary } = useQuery({
+    queryKey: ['summary-gas'],
+    queryFn: () => energyApi.getGasSummary(),
+  });
+
+  const kpis = gasSummary || {};
+
   return (
     <UIShell title="Natural Gas Markets" isPremium={true}>
       <div className="space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard title="TTF Month-Ahead" value="28.42" unit="€/MWh" delta="+1.2%" isUp={true} icon={<Flame className="w-5 h-5 text-orange-500" />} />
-          <KPICard title="EU Storage" value="64.12" unit="%" delta="-0.4%" isUp={false} icon={<Droplets className="w-5 h-5 text-blue-500" />} />
-          <KPICard title="LNG Imports" value="3.2" unit="Bcm/wk" delta="+4.1%" isUp={true} icon={<Activity className="w-5 h-5 text-emerald-500" />} />
+          <KPICard title="TTF Month-Ahead" value={kpis.ttf?.value ?? "..."} unit="€/MWh" delta="+1.2%" isUp={true} icon={<Flame className="w-5 h-5 text-orange-500" />} />
+          <KPICard title="EU Storage" value={kpis.storage?.value ?? "..."} unit="%" delta="-0.4%" isUp={false} icon={<Droplets className="w-5 h-5 text-blue-500" />} />
+          <KPICard title="LNG Imports" value={kpis.lng?.value ?? "..."} unit="Bcm/wk" delta="+4.1%" isUp={true} icon={<Activity className="w-5 h-5 text-emerald-500" />} />
           <KPICard title="Net Withdrawal" value="420" unit="GWh/d" delta="Stable" isUp={null} icon={<ArrowUpRight className="w-5 h-5 text-slate-400" />} />
         </div>
 
