@@ -146,6 +146,11 @@ export const energyApi = {
     return data;
   },
 
+  getGasSummary: async () => {
+    const { data } = await apiClient.get('/summary/gas');
+    return data;
+  },
+
   searchCatalog: async (params: { q?: string; region?: string; type?: string }) => {
     const { data } = await apiClient.get('/catalog/search', { params });
     return data;
