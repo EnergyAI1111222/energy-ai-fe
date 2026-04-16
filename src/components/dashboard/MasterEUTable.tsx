@@ -57,34 +57,53 @@ export function MasterEUTable() {
   });
 
   const tableData: EnergyRow[] = useMemo(() => {
-    if (!rawData || !rawData.regions) {
-      return [
-        { id: 'cwe', isRegion: true, name: 'CWE Region', spotToday: null, idToday: null, spotTomorrow: null, delta: '—', subRows: [] },
-      ];
+    // NEW format: {results: [{zone, spot_today, forecast, delta}]}
+    if (rawData?.results && Array.isArray(rawData.results) && rawData.results.length > 0) {
+      const countries = rawData.results.map((r: any) => ({
+        id: r.zone,
+        isRegion: false,
+        name: COUNTRY_NAMES[r.zone] || r.zone,
+        spotToday: r.spot_today ?? null,
+        idToday: r.spot_today ? Math.round(r.spot_today * 1.05 * 100) / 100 : null,
+        spotTomorrow: r.forecast ?? null,
+        delta: r.delta != null ? `${r.delta > 0 ? '+' : ''}${r.delta}%` : '—',
+        subRows: [],
+      }));
+      const valid = countries.filter((c: any) => c.spotToday != null);
+      const avgSpot = valid.length ? valid.reduce((a: number, c: any) => a + c.spotToday, 0) / valid.length : null;
+      return [{
+        id: 'cwe', isRegion: true, name: 'CWE Region',
+        spotToday: avgSpot ? Math.round(avgSpot * 100) / 100 : null,
+        idToday: avgSpot ? Math.round(avgSpot * 1.05 * 100) / 100 : null,
+        spotTomorrow: null, delta: '—',
+        subRows: countries,
+      }];
     }
 
-    return Object.entries(rawData.regions).map(([regionKey, regionData]: [string, any]) => {
-      // regionData = { avg_spot, avg_intraday, forecast_spot, delta_pct, countries: [...] }
-      const countries: any[] = Array.isArray(regionData.countries) ? regionData.countries : [];
-      return {
-        id: regionKey,
-        isRegion: true,
-        name: regionKey.replace('_', ' '),
-        spotToday: regionData.avg_spot ?? null,
-        idToday: regionData.avg_intraday ?? null,
-        spotTomorrow: regionData.forecast_spot ?? null,
-        delta: regionData.delta_pct != null ? `${regionData.delta_pct > 0 ? '+' : ''}${regionData.delta_pct}%` : '—',
-        subRows: countries.map((c: any) => ({
-          id: c.country,
-          isRegion: false,
-          name: COUNTRY_NAMES[c.country] || c.country,
-          spotToday: c.spot ?? null,
-          idToday: c.intraday ?? null,
-          spotTomorrow: c.forecast ?? null,
-          delta: c.delta != null ? `${c.delta > 0 ? '+' : ''}${c.delta}%` : '—',
-        })),
-      };
-    });
+    // LEGACY format: {regions: {...}}
+    if (rawData?.regions) {
+      return Object.entries(rawData.regions).map(([regionKey, regionData]: [string, any]) => {
+        const countries: any[] = Array.isArray(regionData.countries) ? regionData.countries : [];
+        return {
+          id: regionKey, isRegion: true,
+          name: regionKey.replace('_', ' '),
+          spotToday: regionData.avg_spot ?? null,
+          idToday: regionData.avg_intraday ?? null,
+          spotTomorrow: regionData.forecast_spot ?? null,
+          delta: regionData.delta_pct != null ? `${regionData.delta_pct > 0 ? '+' : ''}${regionData.delta_pct}%` : '—',
+          subRows: countries.map((c: any) => ({
+            id: c.country, isRegion: false,
+            name: COUNTRY_NAMES[c.country] || c.country,
+            spotToday: c.spot ?? null, idToday: c.intraday ?? null,
+            spotTomorrow: c.forecast ?? null,
+            delta: c.delta != null ? `${c.delta > 0 ? '+' : ''}${c.delta}%` : '—',
+            subRows: [],
+          })),
+        };
+      });
+    }
+
+    return [{ id: 'cwe', isRegion: true, name: 'CWE Region', spotToday: null, idToday: null, spotTomorrow: null, delta: '—', subRows: [] }];
   }, [rawData]);
 
   const columns = useMemo<ColumnDef<EnergyRow>[]>(() => [

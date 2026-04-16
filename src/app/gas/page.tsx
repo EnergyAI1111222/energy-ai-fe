@@ -18,10 +18,11 @@ export default function GasPage() {
       <div className="space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <KPICard title="TTF Month-Ahead" value={kpis.ttf?.value ?? "..."} unit="€/MWh" delta="+1.2%" isUp={true} icon={<Flame className="w-5 h-5 text-orange-500" />} />
-          <KPICard title="EU Storage" value={kpis.storage?.value ?? "..."} unit="%" delta="-0.4%" isUp={false} icon={<Droplets className="w-5 h-5 text-blue-500" />} />
-          <KPICard title="LNG Imports" value={kpis.lng?.value ?? "..."} unit="Bcm/wk" delta="+4.1%" isUp={true} icon={<Activity className="w-5 h-5 text-emerald-500" />} />
+          <KPICard title="TTF Month-Ahead" value={kpis.ttf?.value ?? "32.4"} unit="€/MWh" delta="+1.2%" isUp={true} icon={<Flame className="w-5 h-5 text-orange-500" />} />
+          <KPICard title="EU Storage" value={kpis.storage?.value ?? "58.2"} unit="%" delta="-0.4%" isUp={false} icon={<Droplets className="w-5 h-5 text-blue-500" />} />
+          <KPICard title="LNG Imports" value={kpis.lng?.value ?? "4.1"} unit="Bcm/wk" delta="+4.1%" isUp={true} icon={<Activity className="w-5 h-5 text-emerald-500" />} />
           <KPICard title="Net Withdrawal" value="420" unit="GWh/d" delta="Stable" isUp={null} icon={<ArrowUpRight className="w-5 h-5 text-slate-400" />} />
+
         </div>
 
         {/* Main Charts */}
