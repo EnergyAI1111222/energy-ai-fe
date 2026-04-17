@@ -14,7 +14,7 @@ import axios from 'axios';
  */
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://ser-actively-projection-lines.trycloudflare.com/v1';
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? 'https://holdings-warner-boss-tickets.trycloudflare.com/v1';
 
 if (typeof window !== 'undefined') {
   console.log('[api/client] Target:', API_BASE_URL);
