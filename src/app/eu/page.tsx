@@ -4,7 +4,7 @@ import { MasterEUTable } from "@/components/dashboard/MasterEUTable";
 import { ComboAreaLineChart } from "@/components/charts/templates/ComboAreaLineChart";
 import { DualAxisBarLineChart } from "@/components/charts/templates/DualAxisBarLineChart";
 import { StackedAreaChart } from "@/components/charts/templates/StackedAreaChart";
-import { NodalMap } from "@/components/maps/NodalMap";
+import { CountryHeatmapGrid } from "@/components/maps/CountryHeatmapGrid";
 import { Layers, Activity, TrendingUp } from 'lucide-react';
 import { useQuery } from "@tanstack/react-query";
 import { energyApi } from "@/api/client";
@@ -62,30 +62,12 @@ export default function EUOverviewPage() {
               <TrendingUp className="w-4 h-4 text-[#2563eb]" />
            </div>
            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 h-[450px]">
-              <div className="relative rounded-lg overflow-hidden border border-slate-200 group">
-                 <NodalMap mapType="eu_polygon" metric="Spot Today" height={210} />
-                 <span className="absolute bottom-2 left-3 text-[10px] font-bold bg-white/95 border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-700">1. SPOT €</span>
-              </div>
-              <div className="relative rounded-lg overflow-hidden border border-slate-200">
-                 <NodalMap mapType="eu_polygon" metric="Main Source" height={210} />
-                 <span className="absolute bottom-2 left-3 text-[10px] font-bold bg-white/95 border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-700">2. SOURCE TYPE</span>
-              </div>
-              <div className="relative rounded-lg overflow-hidden border border-slate-200">
-                 <NodalMap mapType="eu_polygon" metric="Load Index" height={210} />
-                 <span className="absolute bottom-2 left-3 text-[10px] font-bold bg-white/95 border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-700">3. DEMAND</span>
-              </div>
-              <div className="relative rounded-lg overflow-hidden border border-slate-200">
-                 <NodalMap mapType="eu_polygon" metric="Wind Cap." height={210} />
-                 <span className="absolute bottom-2 left-3 text-[10px] font-bold bg-white/95 border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-700">4. WIND OUTPUT</span>
-              </div>
-              <div className="relative rounded-lg overflow-hidden border border-slate-200">
-                 <NodalMap mapType="eu_polygon" metric="Solar Cap." height={210} />
-                 <span className="absolute bottom-2 left-3 text-[10px] font-bold bg-white/95 border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-700">5. SOLAR OUTPUT</span>
-              </div>
-              <div className="relative rounded-lg overflow-hidden border border-slate-200">
-                 <NodalMap mapType="eu_polygon" metric="Hydro Share" height={210} />
-                 <span className="absolute bottom-2 left-3 text-[10px] font-bold bg-white/95 border border-slate-200 px-2 py-0.5 rounded shadow-sm text-slate-700">6. HYDRO RESERV.</span>
-              </div>
+              <CountryHeatmapGrid metric="Spot Today" label="Spot Price" unit="€/MWh" />
+              <CountryHeatmapGrid metric="Intraday" label="Intraday" unit="€/MWh" />
+              <CountryHeatmapGrid metric="Imbalance" label="Imbalance" unit="€/MWh" />
+              <CountryHeatmapGrid metric="Load Index" label="Demand" unit="MW" />
+              <CountryHeatmapGrid metric="Main Source" label="Source Mix" unit="€/MWh" />
+              <CountryHeatmapGrid metric="Regional Heatmap" label="Regional" unit="€/MWh" />
            </div>
         </div>
       </div>

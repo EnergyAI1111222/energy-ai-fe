@@ -184,37 +184,6 @@ export function NodalMap({ mapType, metric = 'Spot Today', data: externalData, h
       );
     }
 
-    // Layer 3: NODAL POINTS (Scatter)
-    // For demo, we mock 50 points if real data is empty
-    const nodalData = [
-      { id: 'N1', lat: 52.52, lon: 13.40, val: 45 },
-      { id: 'N2', lat: 48.85, lon: 2.35, val: 82 },
-      { id: 'N3', lat: 51.50, lon: -0.12, val: 12 },
-      { id: 'N4', lat: 41.90, lon: 12.49, val: 66 },
-      { id: 'N5', lat: 50.11, lon: 8.68, val: 95 }
-    ];
-
-    activeLayers.push(
-      new GeoJsonLayer({
-        id: 'nodal-stems',
-        data: {
-          type: 'FeatureCollection',
-          features: nodalData.map(p => ({
-            type: 'Feature',
-            geometry: { type: 'Point', coordinates: [p.lon, p.lat] },
-            properties: { ...p }
-          }))
-        },
-        pointType: 'circle',
-        getFillColor: (d: any) => getColor(d.properties.val),
-        getLineColor: [255, 255, 255, 200],
-        getPointRadius: 8,
-        pointRadiusMinPixels: 4,
-        pointRadiusMaxPixels: 15,
-        pickable: true,
-      })
-    );
-
     return activeLayers;
   }, [inView, mapType, geoData, heatmapData, metric, router]);
 
