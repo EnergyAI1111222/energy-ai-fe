@@ -179,6 +179,21 @@ export const energyApi = {
     return data;
   },
 
+  getFuturesSummary: async () => {
+    const { data } = await apiClient.get('/summary/futures');
+    return data;
+  },
+
+  getRetailSummary: async () => {
+    const { data } = await apiClient.get('/summary/retail');
+    return data;
+  },
+
+  getCatalogForCountry: async (cc: string, onlyWithData = true) => {
+    const { data } = await apiClient.get('/catalog/for-country', { params: { cc, only_with_data: onlyWithData } });
+    return data;
+  },
+
   // MS-API-010: Sync CSV export — GET /v1/exports/timeseries.csv
   exportCsv: async (datasetId: string, fromUtc: string, toUtc: string, resolution = '1h') => {
     const response = await apiClient.get('/exports/timeseries.csv', {

@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useMemo } from 'react';
 import { ComboAreaLineChart } from "@/components/charts/templates/ComboAreaLineChart";
 import { StackedAreaChart } from "@/components/charts/templates/StackedAreaChart";
 import { NodalMap } from "@/components/maps/NodalMap";
@@ -7,15 +7,34 @@ import { Map, Info, Zap, Download, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { energyApi } from '@/api/client';
+import { useLiveEnergyData } from '@/hooks/useLiveEnergyData';
 
 const COUNTRY_NAMES: Record<string, string> = {
   DE: 'Germany', FR: 'France', NL: 'Netherlands', BE: 'Belgium',
-  AT: 'Austria', CH: 'Switzerland', UK: 'United Kingdom', EUX: 'EU Exchange',
+  AT: 'Austria', CH: 'Switzerland', UK: 'United Kingdom', LU: 'Luxembourg',
+  DK: 'Denmark', NO: 'Norway', SE: 'Sweden', FI: 'Finland',
+  ES: 'Spain', PT: 'Portugal', IT: 'Italy',
+  PL: 'Poland', CZ: 'Czechia', SK: 'Slovakia', HU: 'Hungary',
+  RO: 'Romania', BG: 'Bulgaria', GR: 'Greece', HR: 'Croatia', SI: 'Slovenia',
+  IE: 'Ireland', EE: 'Estonia', LV: 'Latvia', LT: 'Lithuania',
+};
+
+// Region → spot dataset IDs (from data_types table)
+const REGION_SPOT_IDS: Record<string, string[]> = {
+  cwe: ["1", "2", "3", "4", "5", "6"],  // DE,AT,BE,CH,FR,NL
+  nordics: [],
+  iberia: [],
+  italy: [],
+  cee: [],
+  see: [],
+  british_isles: [],
+  baltics: [],
 };
 
 export default function RegionDashboardPage(props: { params: Promise<{ region: string }> }) {
   const params = React.use(props.params);
   const regionName = (params.region || "").toUpperCase();
+  const regionKey = (params.region || "").toLowerCase();
 
   const { data: euData, isLoading } = useQuery({
     queryKey: ['euTable'],
@@ -23,34 +42,29 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
     refetchInterval: 60000,
   });
 
-  const mockTimeseries: [number, number][] = Array.from({ length: 48 }, (_, i) => {
-    const d = new Date(); d.setHours(i % 24, 0, 0, 0);
-    return [d.getTime(), Math.round(Math.random() * 80 + 20)];
-  });
+  // Get spot IDs for this region for charts
+  const spotIds = REGION_SPOT_IDS[regionKey] || [];
+  const { data: liveData, isLoading: chartsLoading } = useLiveEnergyData(spotIds);
+  const results = liveData?.results || {};
 
-  // Use API data if available, else fallback to demo
-  const regionCountries = React.useMemo(() => {
+  const regionCountries = useMemo(() => {
     const apiResults = euData?.results as Array<{ zone: string; spot_today: number | null; forecast: number | null }> | undefined;
     if (apiResults && apiResults.length > 0) {
       return apiResults.map(r => ({
         code: r.zone,
         name: COUNTRY_NAMES[r.zone] || r.zone,
         price: r.spot_today,
-        intraday: r.forecast ?? (r.spot_today ? r.spot_today * 1.05 : null),
+        intraday: r.forecast,
         delta: null,
-        trend: 'up' as const,
+        trend: (r.spot_today ?? 0) > 60 ? 'up' as const : 'down' as const,
       }));
     }
-    // Fallback demo data
-    return [
-      { code: 'DE', name: 'Germany', price: null, intraday: null, delta: null, trend: 'up' as const },
-      { code: 'FR', name: 'France', price: null, intraday: null, delta: null, trend: 'down' as const },
-      { code: 'BE', name: 'Belgium', price: null, intraday: null, delta: null, trend: 'up' as const },
-      { code: 'NL', name: 'Netherlands', price: null, intraday: null, delta: null, trend: 'up' as const },
-      { code: 'CH', name: 'Switzerland', price: null, intraday: null, delta: null, trend: 'down' as const },
-      { code: 'AT', name: 'Austria', price: null, intraday: null, delta: null, trend: 'up' as const },
-    ];
+    return [];
   }, [euData]);
+
+  // Use first two spot series for charts
+  const series1 = spotIds.length > 0 ? (results[spotIds[0]]?.data || []) : [];
+  const series2 = spotIds.length > 1 ? (results[spotIds[1]]?.data || []) : [];
 
   return (
     <div className="p-4 md:p-6 flex flex-col mx-auto w-full max-w-[1700px] h-full overflow-y-auto">
@@ -65,7 +79,7 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
           </div>
         </div>
         <div className="flex items-center gap-2 text-xs font-bold bg-white border border-slate-200 px-4 py-2 rounded-xl shadow-sm">
-           <Zap className="w-4 h-4 text-amber-500" /> TOTAL AREA DEMAND: 184.2 GW
+           <Zap className="w-4 h-4 text-amber-500" /> COUNTRIES: {regionCountries.length || '—'}
         </div>
       </div>
 
@@ -95,6 +109,8 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
                         <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">
                           <Loader2 className="w-5 h-5 animate-spin mx-auto" />
                         </td></tr>
+                      ) : regionCountries.length === 0 ? (
+                        <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400 text-xs">No data available for this region yet</td></tr>
                       ) : regionCountries.map((c) => (
                          <tr key={c.code} className="hover:bg-slate-50/80 transition-colors group">
                             <td className="px-4 py-4">
@@ -140,20 +156,23 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
          <div className="h-[340px]">
-            <ComboAreaLineChart 
-               title="Regional Prices Convergence (DA Average)" 
-               nameArea={`${regionName} High`} nameLine={`${regionName} Low`}
-               dataArea={mockTimeseries} dataLine={mockTimeseries.map(t => [t[0], (t[1] as number) * 0.7])}
+            <ComboAreaLineChart
+               title="Regional Spot Price Convergence"
+               nameArea={spotIds.length > 0 ? `Dataset ${spotIds[0]}` : 'No Data'}
+               nameLine={spotIds.length > 1 ? `Dataset ${spotIds[1]}` : 'No Data'}
+               dataArea={series1}
+               dataLine={series2}
+               isLoading={chartsLoading}
             />
          </div>
          <div className="h-[340px]">
-            <StackedAreaChart 
-               title="Region Actual Renewable Generation (Wind + Solar)" 
-               series={[
-                  { name: 'Wind Offshore', data: mockTimeseries.map(t => [t[0], (t[1] as number) * 0.4]) },
-                  { name: 'Wind Onshore', data: mockTimeseries.map(t => [t[0], (t[1] as number) * 0.6]) },
-                  { name: 'Solar', data: mockTimeseries.map(t => [t[0], (t[1] as number) * 0.3]) },
-               ]}
+            <StackedAreaChart
+               title="Region Spot Prices Overlay"
+               series={spotIds.slice(0, 4).map((id, i) => ({
+                  name: `Dataset ${id}`,
+                  data: results[id]?.data || [],
+               }))}
+               isLoading={chartsLoading}
             />
          </div>
       </div>
@@ -161,7 +180,7 @@ export default function RegionDashboardPage(props: { params: Promise<{ region: s
       <div className="p-4 bg-[#f8fafc] border border-slate-200 rounded-xl flex items-center justify-between mb-20 italic text-slate-500 text-sm">
          <div className="flex items-center gap-3">
             <Info className="w-4 h-4 text-[#2563eb]" />
-            <p>"Regional interconnection data (UMMs/Physical Flows) is being synced from Level 2 Nodal Matrix..."</p>
+            <p>Regional interconnection data (UMMs/Physical Flows) will appear once scraped into the database.</p>
          </div>
          <button className="flex items-center gap-2 font-bold text-slate-400 hover:text-slate-600 transition-colors uppercase text-xs">
             <Download className="w-4 h-4" /> Download Full Region CSV

@@ -45,12 +45,16 @@ export default function RecordTrackerPage() {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
                         <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        Today, 12:45 UTC
+                        {record.last_updated_utc ? new Date(record.last_updated_utc).toLocaleString() : '—'}
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="px-2.5 py-1 bg-emerald-500/10 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border border-emerald-500/10">
-                        Synced
+                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter shadow-sm border ${
+                        record.is_active
+                          ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/10'
+                          : 'bg-slate-100 text-slate-400 border-slate-200'
+                      }`}>
+                        {record.is_active ? 'Active' : 'Inactive'}
                       </span>
                     </td>
                   </tr>
