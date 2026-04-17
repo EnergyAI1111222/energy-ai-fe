@@ -12,29 +12,29 @@ const CATEGORIES = [
     title: "Main Apps",
     items: [
       { name: 'Dashboards', href: '/eu', icon: BarChart2, active: true },
-      { name: 'Custom Dashboards', href: '/custom-dashboards', icon: Columns, shell: true },
-      { name: 'Futures, Fuels & Spreads', href: '/futures', icon: TrendingUp, shell: true },
+      { name: 'Custom Dashboards', href: '/custom-dashboards', icon: Columns }, 
+      { name: 'Futures, Fuels & Spreads', href: '/futures', icon: TrendingUp }, 
       { name: 'Picasso', href: '/picasso', icon: Zap }, // Active
-      { name: 'Imbalance Capacity', href: '/imbalance-capacity', icon: Scale, shell: true },
-      { name: 'Gas', href: '/gas', icon: Flame, shell: true },
-      { name: 'Nodal Analyse', href: '/nodal-analyse', icon: Map, shell: true },
-      { name: 'Retail', href: '/retail', icon: ShoppingCart, shell: true },
+      { name: 'Imbalance Capacity', href: '/imbalance-capacity', icon: Scale }, 
+      { name: 'Gas', href: '/gas', icon: Flame }, 
+      { name: 'Nodal Analyse', href: '/nodal-analyse', icon: Map }, 
+      { name: 'Retail', href: '/retail', icon: ShoppingCart }, 
     ]
   },
   {
     title: "Data & Tools",
     items: [
       { name: 'Data Catalog', href: '/catalog', icon: Search }, // Active
-      { name: 'Record Tracker', href: '/record-tracker', icon: Trophy, shell: true },
-      { name: 'Insights', href: '/insights', icon: Lightbulb, shell: true },
-      { name: 'Alerts', href: '/alerts', icon: Bell, shell: true },
+      { name: 'Record Tracker', href: '/record-tracker', icon: Trophy },
+      { name: 'Insights', href: '/insights', icon: Lightbulb },
+      { name: 'Alerts', href: '/alerts', icon: Bell },
       { name: 'Export Data', href: '/export-data', icon: Download }, // Active
     ]
   },
   {
     title: "Utilities & User",
     items: [
-      { name: 'My Grid Status', href: '/my-grid', icon: Star, shell: true },
+      { name: 'My Grid Status', href: '/my-grid', icon: Star },
       { name: 'Settings', href: '/settings', icon: Settings },
     ]
   }

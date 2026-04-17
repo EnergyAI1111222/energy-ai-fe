@@ -4,10 +4,14 @@ import { Newspaper, TrendingUp, MessageSquare, ExternalLink } from "lucide-react
 
 export default function InsightsPage() {
   return (
-    <UIShell title="Insights & Market Intelligence" isPremium={true}>
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full overflow-y-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Market Intelligence & Insights</h1>
+        <p className="text-sm text-slate-500">AI-driven summaries and trend analysis from production benchmarks.</p>
+      </div>
 
-        {/* News Feed */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* ... existing ... */}
         <div className="lg:col-span-2 space-y-4">
            <div className="bg-white rounded-xl p-8 border border-slate-100 shadow-sm text-center py-20">
               <Newspaper className="w-12 h-12 text-slate-200 mx-auto mb-4" />
@@ -49,6 +53,6 @@ export default function InsightsPage() {
            </div>
         </div>
       </div>
-    </UIShell>
+    </div>
   );
 }

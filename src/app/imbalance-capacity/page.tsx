@@ -1,5 +1,4 @@
 "use client";
-import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { Zap, Gauge, Server, AlertTriangle, TrendingDown } from "lucide-react";
 import { useLiveEnergyData } from "@/hooks/useLiveEnergyData";
@@ -26,7 +25,12 @@ export default function ImbalanceCapacityPage() {
   };
 
   return (
-    <UIShell title="System Imbalance & Capacity" isPremium={true}>
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">System Imbalance & Capacity</h1>
+        <p className="text-sm text-slate-500">Real-time status of European power grid stability and imbalance prices.</p>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
 
         {/* Left Column: Real-time Frequency/Imbalance */}
@@ -122,7 +126,7 @@ export default function ImbalanceCapacityPage() {
         </div>
 
       </div>
-    </UIShell>
+    </div>
   );
 }
 

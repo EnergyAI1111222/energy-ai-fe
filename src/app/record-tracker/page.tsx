@@ -11,7 +11,12 @@ export default function RecordTrackerPage() {
   });
 
   return (
-    <UIShell title="Record Tracker & Data Updates" isPremium={true}>
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full overflow-y-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Record Tracker & Data Updates</h1>
+        <p className="text-sm text-slate-500">Real-time audit log of all incoming production data points.</p>
+      </div>
+
       <div className="space-y-6">
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
@@ -64,6 +69,6 @@ export default function RecordTrackerPage() {
           </div>
         </div>
       </div>
-    </UIShell>
+    </div>
   );
 }

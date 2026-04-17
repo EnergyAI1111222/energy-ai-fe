@@ -1,5 +1,4 @@
 "use client";
-import { UIShell } from "@/components/layout/UIShell";
 import { Flame, Droplets, ArrowUpRight, ArrowDownRight, Activity } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { energyApi } from "@/api/client";
@@ -13,14 +12,19 @@ export default function GasPage() {
   const kpis = gasSummary || {};
 
   return (
-    <UIShell title="Natural Gas Markets" isPremium={true}>
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Natural Gas Markets</h1>
+        <p className="text-sm text-slate-500">Real-time inventory and price tracking from production database.</p>
+      </div>
+
       <div className="space-y-6">
         {/* KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <KPICard title="TTF Month-Ahead" value={kpis.ttf?.value} unit="€/MWh" delta={kpis.ttf?.delta} isUp={kpis.ttf?.trend === 'up' ? true : kpis.ttf?.trend === 'down' ? false : null} icon={<Flame className="w-5 h-5 text-orange-500" />} />
           <KPICard title="EU Storage" value={kpis.storage?.value} unit="%" delta={kpis.storage?.delta} isUp={kpis.storage?.trend === 'up' ? true : kpis.storage?.trend === 'down' ? false : null} icon={<Droplets className="w-5 h-5 text-blue-500" />} />
           <KPICard title="LNG Imports" value={kpis.lng?.value} unit="Bcm/wk" delta={kpis.lng?.delta} isUp={kpis.lng?.trend === 'up' ? true : kpis.lng?.trend === 'down' ? false : null} icon={<Activity className="w-5 h-5 text-emerald-500" />} />
-          <KPICard title="Net Withdrawal" value={kpis.net_withdrawal?.value} unit="GWh/d" delta={kpis.net_withdrawal?.delta} isUp={null} icon={<ArrowUpRight className="w-5 h-5 text-slate-400" />} />
+          <KPICard title="NCG VHP Spot" value={kpis.ncg?.value} unit="€/MWh" delta={kpis.ncg?.delta} isUp={kpis.ncg?.trend === 'up' ? true : kpis.ncg?.trend === 'down' ? false : null} icon={<Flame className="w-5 h-5 text-red-500" />} />
         </div>
 
         {/* Main Charts */}
@@ -32,23 +36,23 @@ export default function GasPage() {
             </div>
             <div className="h-[350px] flex items-center justify-center">
                <div className="text-center">
-                  <p className="text-slate-400 text-sm font-medium">Storage inventory data not yet available.</p>
-                  <p className="text-slate-300 text-xs mt-2">Will populate once gas storage datasets are scraped into the database.</p>
+                  <p className="text-slate-400 text-sm font-medium">No storage nodes connected for this region.</p>
+                  <p className="text-slate-300 text-xs mt-2">Check 'Data Catalog' to find active storage time-series IDs.</p>
                </div>
             </div>
           </div>
 
           {/* Flow Balance */}
           <div className="bg-slate-900 rounded-xl p-6 border border-slate-800 shadow-sm text-white">
-             <h3 className="font-bold text-sm mb-6 uppercase tracking-widest text-[#2563eb]">Regional Flow Balance</h3>
+             <h3 className="font-bold text-sm mb-6 uppercase tracking-widest text-blue-500">Regional Flow Balance</h3>
              <div className="py-10 text-center">
-                <p className="text-slate-500 text-xs">Flow data not yet available.</p>
-                <p className="text-slate-600 text-[10px] mt-2">Requires pipeline flow datasets to be loaded.</p>
+                <p className="text-slate-500 text-xs">Awaiting cross-border flow datasets.</p>
+                <p className="text-slate-600 text-[10px] mt-2">Data will appear once entry/exit point scraping is complete.</p>
              </div>
           </div>
         </div>
       </div>
-    </UIShell>
+    </div>
   );
 }
 

@@ -222,17 +222,38 @@ export default function PicassoPage() {
                              splitLine: { lineStyle: { color: 'rgba(255,255,255,0.02)', type: 'dashed' } },
                              axisLabel: { color: '#475569', fontSize: 10 }
                           },
-                           series: layers.filter(l => l.visible).map(l => ({
-                              name: l.name,
-                              type: 'line',
-                              color: l.color,
-                              smooth: true,
-                              stack: mode === 'stack' ? 'total' : undefined,
-                              areaStyle: mode === 'stack' ? { opacity: 0.3 } : undefined,
-                              showSymbol: false,
-                              lineStyle: { width: 3 },
-                              data: results[l.dataset_id]?.data || []
-                           }))
+                           series: [
+                             ...layers.filter(l => l.visible).map(l => ({
+                               name: l.name,
+                               type: 'line',
+                               color: l.color,
+                               smooth: true,
+                               stack: mode === 'stack' ? 'total' : undefined,
+                               areaStyle: mode === 'stack' ? { opacity: 0.3 } : undefined,
+                               showSymbol: false,
+                               lineStyle: { width: 2.5, opacity: mode === 'delta' ? 0.3 : 1 },
+                               data: results[l.dataset_id]?.data || []
+                             })),
+                             // Formula Layer: The "Picasso" Result
+                             ...(layers.length > 1 ? [{
+                               name: 'Σ RESULT (Picasso Formula)',
+                               type: 'line',
+                               color: '#00f2ff',
+                               smooth: true,
+                               showSymbol: false,
+                               lineStyle: { width: 4, type: 'dashed', shadowBlur: 10, shadowColor: '#00f2ff' },
+                               data: useMemo(() => {
+                                 const allData = layers.map(l => results[l.dataset_id]?.data || []);
+                                 if (allData.length < 2) return [];
+                                 // Simple sum formula: A + B + ...
+                                 const first = allData[0];
+                                 return first.map(([ts], i) => {
+                                   const sum = allData.reduce((acc, series) => acc + (series[i]?.[1] || 0), 0);
+                                   return [ts, sum];
+                                 });
+                               }, [results, layers])
+                             }] : [])
+                           ]
                        }}
                     />
                  </div>

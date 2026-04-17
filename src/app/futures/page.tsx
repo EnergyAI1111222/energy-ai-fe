@@ -1,5 +1,4 @@
 "use client";
-import { UIShell } from "@/components/layout/UIShell";
 import { BaseEnergyChart } from "@/components/charts/BaseEnergyChart";
 import { Fuel, BarChart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -14,7 +13,12 @@ export default function FuturesPage() {
   const kpis = futures || {};
 
   return (
-    <UIShell title="Futures, Fuels & Spreads" isPremium={true}>
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Futures, Fuels & Spreads</h1>
+        <p className="text-sm text-slate-500">Global energy benchmarks and forward-looking price trajectories.</p>
+      </div>
+
       <div className="space-y-6">
 
         {/* Forward Curves Section */}
@@ -28,8 +32,8 @@ export default function FuturesPage() {
 
            <div className="h-[400px] flex items-center justify-center">
               <div className="text-center">
-                 <p className="text-slate-400 text-sm font-medium">Forward curve data not yet available in the database.</p>
-                 <p className="text-slate-300 text-xs mt-2">Once futures/forward datasets are scraped, charts will render automatically.</p>
+                 <p className="text-slate-400 text-sm font-medium">No active forward curve IDs found in database.</p>
+                 <p className="text-slate-300 text-xs mt-2">Check 'Market Metadata' to verify futures dataset subscription status.</p>
               </div>
            </div>
         </div>
@@ -39,7 +43,7 @@ export default function FuturesPage() {
            {/* Fuels Table */}
            <div className="bg-slate-900 rounded-xl p-8 text-white border border-slate-800 shadow-2xl">
               <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6 flex items-center gap-2">
-                 <Fuel className="w-4 h-4 text-[#2563eb]" /> Fuel Benchmarks
+                 <Fuel className="w-4 h-4 text-blue-500" /> Fuel Benchmarks
               </h3>
                <div className="space-y-4">
                   <FuelRow label="CO2 EUA" value={kpis.co2?.value} unit="€/t" delta={kpis.co2?.delta} />
@@ -55,15 +59,15 @@ export default function FuturesPage() {
               </h3>
               <div className="flex items-center justify-center py-10">
                  <div className="text-center">
-                    <p className="text-slate-400 text-sm font-medium">Spread calculations require futures data.</p>
-                    <p className="text-slate-300 text-xs mt-2">Will be computed once gas/power forward datasets are loaded.</p>
+                    <p className="text-slate-400 text-sm font-medium">Waiting for spread modeling engine.</p>
+                    <p className="text-slate-300 text-xs mt-2">Requires matched gas and power price IDs in same zone.</p>
                  </div>
               </div>
            </div>
         </div>
 
       </div>
-    </UIShell>
+    </div>
   );
 }
 
@@ -73,7 +77,7 @@ function FuelRow({ label, value, unit, delta }: any) {
        <span className="text-sm font-medium text-slate-300">{label}</span>
        <div className="flex items-center gap-4">
           {delta && <span className="text-[10px] font-bold text-emerald-400">{delta}</span>}
-          <span className="font-mono font-bold text-[#2563eb]">
+          <span className="font-mono font-bold text-blue-500">
             {value != null ? `${Number(value).toFixed(2)}` : '—'}{' '}
             <span className="text-[10px] text-slate-500">{unit}</span>
           </span>

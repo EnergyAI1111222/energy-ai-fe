@@ -224,6 +224,16 @@ export const energyApi = {
   },
 
   // MS-API-002: Current user profile + effective plan limits
+  getDatasetDetails: async (datasetId: string) => {
+    const { data } = await apiClient.get(`/datasets/${datasetId}`);
+    return data;
+  },
+
+  getDatasetPreview: async (datasetId: string) => {
+    const { data } = await apiClient.get(`/datasets/${datasetId}/preview`);
+    return data;
+  },
+
   getMe: async () => {
     const { data } = await apiClient.get('/auth/me');
     return data;

@@ -1,5 +1,4 @@
 "use client";
-import { UIShell } from "@/components/layout/UIShell";
 import { Users, UserMinus, Percent, BarChart3 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { energyApi } from "@/api/client";
@@ -13,7 +12,11 @@ export default function RetailPage() {
   const kpis = retailSummary || {};
 
   return (
-    <UIShell title="Retail Propensity & Churn" isPremium={true}>
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full">
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Retail Propensity & Churn</h1>
+        <p className="text-sm text-slate-500">Retail analytics and customer behavior tracking.</p>
+      </div>
       <div className="space-y-6">
         {/* Top KPI Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -63,7 +66,7 @@ export default function RetailPage() {
            </div>
         </div>
       </div>
-    </UIShell>
+    </div>
   );
 }
 

@@ -1,11 +1,13 @@
 "use client";
-import { UIShell } from "@/components/layout/UIShell";
+import React from "react";
 import { NodalMap } from "@/components/maps/NodalMap";
 import { Info, Target, Zap } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 
 export default function NodalAnalysePage() {
+  const [selectedMetric, setSelectedMetric] = React.useState("Spot Today");
+  
   // Fetch actual nodal points count from API
   const { data: nodalData } = useQuery({
     queryKey: ['nodal-points'],
@@ -15,7 +17,20 @@ export default function NodalAnalysePage() {
   const totalNodes = nodalData?.length ?? 0;
 
   return (
-    <UIShell title="Nodal Analysis (WebGL 3D Maps)" isPremium={true}>
+    <div className="p-6 space-y-6 bg-slate-50 min-h-full">
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Nodal Analysis</h1>
+          <p className="text-sm text-slate-500">3D WebGL Visualization of European Grid Nodes and Congestion.</p>
+        </div>
+        <div className="flex items-center gap-2">
+            <div className="px-3 py-1 bg-emerald-100 border border-emerald-200 rounded-full text-[10px] font-bold text-emerald-700 uppercase tracking-widest flex items-center gap-1.5">
+               <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+               Live Connection
+            </div>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Map Canvas */}
         <div className="lg:col-span-3 space-y-6">
@@ -31,14 +46,18 @@ export default function NodalAnalysePage() {
                  </div>
                </div>
                <div className="flex items-center gap-2">
-                 <select className="text-[10px] font-bold bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 ring-[#2563eb]">
-                   <option>Spot Today (Avg)</option>
-                   <option>Intraday</option>
-                   <option>Imbalance</option>
+                 <select 
+                   value={selectedMetric}
+                   onChange={(e) => setSelectedMetric(e.target.value)}
+                   className="text-[10px] font-bold bg-white border border-slate-200 rounded-lg px-2 py-1 outline-none focus:ring-2 ring-[#2563eb]"
+                 >
+                   <option value="Spot Today">Spot Today (Avg)</option>
+                   <option value="Intraday">Intraday</option>
+                   <option value="Imbalance">Imbalance</option>
                  </select>
                </div>
              </div>
-             <NodalMap mapType="eu_polygon" metric="Spot Today" height="calc(100vh - 280px)" />
+             <NodalMap mapType="eu_polygon" metric={selectedMetric} height="calc(100vh - 280px)" />
            </div>
         </div>
 
@@ -81,6 +100,6 @@ export default function NodalAnalysePage() {
            </div>
         </div>
       </div>
-    </UIShell>
+    </div>
   );
 }
