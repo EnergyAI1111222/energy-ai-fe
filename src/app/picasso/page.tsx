@@ -2,14 +2,15 @@
 import React, { useState, useMemo } from 'react';
 import { energyApi } from '@/api/client';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Plus, Layers, Settings2, Share2, Save, Play, 
-  Trash2, GripVertical, ChevronRight, Wand2, Database, Search
+import {
+  Plus, Layers, Settings2, Share2, Save, Play,
+  Trash2, GripVertical, ChevronRight, Wand2, Database, Search, AlertCircle
 } from 'lucide-react';
 import { BaseEnergyChart } from '@/components/charts/BaseEnergyChart';
 import { motion, Reorder } from 'framer-motion';
 
 import { useLiveEnergyData } from '@/hooks/useLiveEnergyData';
+import { compileFormula, applyFormula, type Series } from '@/utils/picassoFormula';
 
 type PicassoLayer = {
   id: string;
@@ -20,15 +21,59 @@ type PicassoLayer = {
   order: number;
 }
 
+const LAYER_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+const labelFor = (idx: number) => LAYER_LETTERS[idx] ?? `V${idx + 1}`;
+
 export default function PicassoPage() {
   const [layers, setLayers] = useState<PicassoLayer[]>([]);
   const [activeTab, setActiveTab] = useState<'catalog' | 'config'>('catalog');
   const [search, setSearch] = useState("");
   const [mode, setMode] = useState<'line' | 'stack' | 'delta'>('line');
+  const [formula, setFormula] = useState<string>('A+B');
 
   const datasetIds = useMemo(() => layers.map(l => l.dataset_id), [layers]);
   const { data: liveData, isLoading: liveLoading } = useLiveEnergyData(datasetIds);
   const results = liveData?.results || {};
+
+  // Compile the user formula. Errors surface as a visible badge instead of
+  // throwing — so a half-typed expression doesn't break the canvas.
+  const compiled = useMemo(() => {
+    const src = formula.trim();
+    if (!src) return { ok: false as const, error: 'Empty formula' };
+    try {
+      return { ok: true as const, fn: compileFormula(src) };
+    } catch (e: any) {
+      return { ok: false as const, error: e?.message || 'Invalid formula' };
+    }
+  }, [formula]);
+
+  // Map A,B,C... → series data drawn from the live batch result, in layer order.
+  const labelledSeries = useMemo<Record<string, Series>>(() => {
+    const out: Record<string, Series> = {};
+    layers.forEach((l, i) => {
+      const data = (results[l.dataset_id]?.data || []) as Series;
+      out[labelFor(i)] = data;
+    });
+    return out;
+  }, [layers, results]);
+
+  // Evaluate the formula across the union of series timestamps (forward-fill
+  // per layer). Computed at the top level so we don't violate the rules of
+  // hooks by calling useMemo inside a series-render callback.
+  const formulaSeries = useMemo<Series>(() => {
+    if (!compiled.ok) return [];
+    const required = compiled.fn.vars;
+    if (required.some(v => !labelledSeries[v] || !labelledSeries[v].length)) return [];
+    return applyFormula(compiled.fn, labelledSeries);
+  }, [compiled, labelledSeries]);
+
+  const formulaPlaceholder = useMemo(() => {
+    if (layers.length === 0) return 'Add layers to compose a formula (e.g. A+B)';
+    if (layers.length === 1) return 'A';
+    const labels = layers.map((_, i) => labelFor(i));
+    return `${labels[0]}+${labels[1]}` + (layers.length > 2 ? ` (vars: ${labels.join(', ')})` : '');
+  }, [layers]);
 
   const { data: suggestions } = useQuery({
     queryKey: ['catalog-suggest', search],
@@ -140,13 +185,16 @@ export default function PicassoPage() {
               ) : (
                 <div className="space-y-4">
                    <Reorder.Group axis="y" values={layers} onReorder={setLayers} className="space-y-2">
-                      {layers.map((layer) => (
-                        <Reorder.Item 
-                          key={layer.id} 
+                      {layers.map((layer, i) => (
+                        <Reorder.Item
+                          key={layer.id}
                           value={layer}
                           className="p-4 bg-slate-900/50 border border-white/5 rounded-lg flex items-center gap-4 group hover:border-white/10 transition-all active:scale-[0.98]"
                         >
                            <GripVertical className="w-4 h-4 text-slate-700 cursor-grab active:cursor-grabbing" />
+                           <div className="w-7 h-7 rounded-md bg-[#2563eb]/10 border border-[#2563eb]/30 text-[#2563eb] flex items-center justify-center text-[11px] font-extrabold font-mono">
+                              {labelFor(i)}
+                           </div>
                            <div className="flex-1">
                               <div className="flex items-center gap-2 mb-1">
                                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: layer.color }} />
@@ -175,6 +223,29 @@ export default function PicassoPage() {
               <div className="absolute inset-0 bg-gradient-to-br from-[#2563eb]/2 to-transparent opacity-50" />
               
               <div className="relative h-full flex flex-col">
+                 {/* Formula Engine bar */}
+                 <div className="mb-6 flex items-center gap-3 bg-black/40 border border-white/5 rounded-xl px-4 py-3">
+                    <div className="text-[10px] font-extrabold uppercase tracking-widest text-[#2563eb] font-mono shrink-0">ƒ(x) =</div>
+                    <input
+                      type="text"
+                      value={formula}
+                      onChange={(e) => setFormula(e.target.value)}
+                      placeholder={formulaPlaceholder}
+                      spellCheck={false}
+                      className="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm placeholder:text-slate-600"
+                    />
+                    <div className="text-[9px] font-mono text-slate-500 hidden md:block">
+                      vars: {layers.length ? layers.map((_, i) => labelFor(i)).join(', ') : '—'} · fns: abs, min, max, avg, sum, pow
+                    </div>
+                    {compiled.ok ? (
+                      <div className="text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">OK</div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 shrink-0" title={compiled.error}>
+                         <AlertCircle className="w-3 h-3" /> {compiled.error}
+                      </div>
+                    )}
+                 </div>
+
                  <div className="flex items-center justify-between mb-12">
                     <div className="flex items-center gap-3">
                        <div className="px-3 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-full text-[10px] font-extrabold uppercase tracking-widest flex items-center gap-2">
@@ -223,8 +294,8 @@ export default function PicassoPage() {
                              axisLabel: { color: '#475569', fontSize: 10 }
                           },
                            series: [
-                             ...layers.filter(l => l.visible).map(l => ({
-                               name: l.name,
+                             ...layers.filter(l => l.visible).map((l, i) => ({
+                               name: `${labelFor(i)} — ${l.name}`,
                                type: 'line',
                                color: l.color,
                                smooth: true,
@@ -234,25 +305,14 @@ export default function PicassoPage() {
                                lineStyle: { width: 2.5, opacity: mode === 'delta' ? 0.3 : 1 },
                                data: results[l.dataset_id]?.data || []
                              })),
-                             // Formula Layer: The "Picasso" Result
-                             ...(layers.length > 1 ? [{
-                               name: 'Σ RESULT (Picasso Formula)',
+                             ...(compiled.ok && formulaSeries.length ? [{
+                               name: `ƒ(${formula.trim()})`,
                                type: 'line',
                                color: '#00f2ff',
                                smooth: true,
                                showSymbol: false,
                                lineStyle: { width: 4, type: 'dashed', shadowBlur: 10, shadowColor: '#00f2ff' },
-                               data: useMemo(() => {
-                                 const allData = layers.map(l => results[l.dataset_id]?.data || []);
-                                 if (allData.length < 2) return [];
-                                 // Simple sum formula: A + B + ...
-                                 const first = allData[0] || [];
-                                 return first.map((point: any[], i: number) => {
-                                   const ts = point[0];
-                                   const sum = allData.reduce((acc: number, series: any) => acc + (series[i]?.[1] || 0), 0);
-                                   return [ts, sum];
-                                 });
-                               }, [results, layers])
+                               data: formulaSeries
                              }] : [])
                            ]
                        }}

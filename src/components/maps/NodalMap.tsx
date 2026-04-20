@@ -26,11 +26,9 @@ interface NodalMapProps {
 }
 
 import { useHeatmapData } from '@/hooks/useHeatmapData';
+import { useNodalMatrix, useEuPolygons } from '@/hooks/useNodalMatrix';
 import { useInView } from 'react-intersection-observer';
 import { useRouter } from 'next/navigation';
-
-// Shared GeoJSON cache
-let geoJsonCache: any = null;
 
 // Color Scale Helper (Electric Teal Scale)
 const getColor = (value: number, max: number = 100): [number, number, number, number] => {
@@ -66,12 +64,35 @@ export function NodalMap({ mapType, metric = 'Spot Today', data: externalData, h
   const router = useRouter();
   const { selectedTimeSlot, setTimeSlot, activeTab } = useTimeStateStore();
   const [isMounted, setIsMounted] = useState(false);
-  const [geoData, setGeoData] = useState<any>(geoJsonCache);
   const [isPlaying, setIsPlaying] = useState(false);
   const animFrameRef = useRef<number | null>(null);
   const lastFrameTimeRef = useRef<number>(0);
 
   const { data: heatmapData, isLoading: isHeatmapLoading } = useHeatmapData(metric);
+  const { data: matrix } = useNodalMatrix(metric);
+  const { data: polygonsFc } = useEuPolygons();
+  const geoData = polygonsFc ?? null;
+
+  // Per-slot snapshot: pick the current selectedTimeSlot value per zone,
+  // falling back to the last non-null value in the day, then to the daily
+  // heatmap value. This keeps the 96-slot slider visually responsive even
+  // when individual slots are sparsely sampled.
+  const slotHeatmap = useMemo(() => {
+    if (!matrix) return heatmapData ?? null;
+    const out: Record<string, number> = {};
+    for (const [zone, slots] of Object.entries(matrix)) {
+      const arr = slots as Array<number | null>;
+      const v = arr[selectedTimeSlot];
+      if (v != null) {
+        out[zone] = v;
+        continue;
+      }
+      const fallback = [...arr].reverse().find((x) => x != null);
+      if (fallback != null) out[zone] = fallback as number;
+      else if (heatmapData && heatmapData[zone] != null) out[zone] = heatmapData[zone] as number;
+    }
+    return out;
+  }, [matrix, selectedTimeSlot, heatmapData]);
 
   // 96-slot auto-play animation (~250ms per slot = ~24s full cycle for smooth visual)
   const FRAME_INTERVAL_MS = 250;
@@ -119,26 +140,19 @@ export function NodalMap({ mapType, metric = 'Spot Today', data: externalData, h
 
   React.useEffect(() => {
     setIsMounted(true);
-    if (inView && !geoJsonCache && mapType === 'eu_polygon') {
-      fetch('https://raw.githubusercontent.com/datasets/geo-countries/master/data/countries.geojson')
-        .then(res => res.json())
-        .then(data => {
-          geoJsonCache = data;
-          setGeoData(data);
-        })
-        .catch(err => console.error("Map Data Fetch Error:", err));
-    }
-  }, [inView, mapType]);
+  }, []);
 
   const layers = useMemo(() => {
     if (!inView) return [];
     
     const activeLayers: any[] = [];
 
+    const activeHeatmap = slotHeatmap ?? heatmapData ?? null;
+
     // Layer 1: Base Heatmap (Demand/Spot)
-    if (heatmapData) {
-      const heatmapPoints = Object.entries(heatmapData).map(([code, val]) => {
-        const coords = COUNTRY_COORDS[code.toUpperCase()] || [10, 50]; // Default to center EU
+    if (activeHeatmap) {
+      const heatmapPoints = Object.entries(activeHeatmap).map(([code, val]) => {
+        const coords = COUNTRY_COORDS[code.toUpperCase()] || [10, 50];
         return {
           coordinates: coords,
           weight: Math.abs(val as number)
@@ -148,7 +162,7 @@ export function NodalMap({ mapType, metric = 'Spot Today', data: externalData, h
       if (heatmapPoints.length > 0) {
         activeLayers.push(
           new HeatmapLayer({
-            id: `heatmap-${metric}`,
+            id: `heatmap-${metric}-${selectedTimeSlot}`,
             data: heatmapPoints,
             getPosition: (d: any) => d.coordinates,
             getWeight: (d: any) => d.weight,
@@ -161,23 +175,26 @@ export function NodalMap({ mapType, metric = 'Spot Today', data: externalData, h
     }
 
     // Layer 2: Country Polygons (GeoJSON)
-    if (mapType === 'eu_polygon' && (geoData || geoJsonCache)) {
+    if (mapType === 'eu_polygon' && geoData) {
       activeLayers.push(
         new GeoJsonLayer({
-          id: `geojson-${metric}`,
-          data: geoData || geoJsonCache,
+          id: `geojson-${metric}-${selectedTimeSlot}`,
+          data: geoData,
           stroked: true,
           filled: true,
           getFillColor: (f: any) => {
-            const code = f.properties.ISO_A2 || f.properties.iso_a2;
-            const val = heatmapData ? heatmapData[code] : 0;
+            const code = (f.properties.iso_a2 || f.properties.ISO_A2 || '').toUpperCase();
+            const val = activeHeatmap ? activeHeatmap[code] : 0;
             return val ? getColor(val, 150) : [15, 23, 42, 40];
           },
           getLineColor: [37, 99, 235, 80],
           getLineWidth: 1,
           pickable: true,
+          updateTriggers: {
+            getFillColor: [activeHeatmap, selectedTimeSlot],
+          },
           onClick: (info: any) => {
-            const countryCode = info.object?.properties?.ISO_A2?.toLowerCase() || info.object?.properties?.iso_a2?.toLowerCase();
+            const countryCode = (info.object?.properties?.iso_a2 || info.object?.properties?.ISO_A2 || '').toLowerCase();
             if (countryCode) router.push(`/eu/west/${countryCode}`);
           }
         })
@@ -185,7 +202,7 @@ export function NodalMap({ mapType, metric = 'Spot Today', data: externalData, h
     }
 
     return activeLayers;
-  }, [inView, mapType, geoData, heatmapData, metric, router]);
+  }, [inView, mapType, geoData, slotHeatmap, heatmapData, metric, selectedTimeSlot, router]);
 
   if (!isMounted) return <div className="w-full bg-slate-900 rounded-xl " style={{ height }} />;
 
