@@ -246,9 +246,10 @@ export default function PicassoPage() {
                                  const allData = layers.map(l => results[l.dataset_id]?.data || []);
                                  if (allData.length < 2) return [];
                                  // Simple sum formula: A + B + ...
-                                 const first = allData[0];
-                                 return first.map(([ts], i) => {
-                                   const sum = allData.reduce((acc, series) => acc + (series[i]?.[1] || 0), 0);
+                                 const first = allData[0] || [];
+                                 return first.map((point: any[], i: number) => {
+                                   const ts = point[0];
+                                   const sum = allData.reduce((acc: number, series: any) => acc + (series[i]?.[1] || 0), 0);
                                    return [ts, sum];
                                  });
                                }, [results, layers])
