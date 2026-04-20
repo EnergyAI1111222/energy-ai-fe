@@ -33,23 +33,21 @@ export default function RootLayout({
       lang="en"
       className={`${inter.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
-      <ClerkProvider>
-        <body className={`${inter.variable} ${jetbrainsMono.variable} h-full flex font-sans bg-slate-50 text-slate-900 overflow-hidden`}>
-          <AppProviders>
-            <BffAuthSync />
-            <div className="flex h-screen w-full">
-              <Sidebar />
-              <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-slate-50">
-                <Topbar />
-                <main className="flex-1 overflow-auto relative p-6">
-                  {children}
-                  <CommandPalette />
-                </main>
-              </div>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} h-full flex font-sans bg-slate-50 text-slate-900 overflow-hidden`}>
+        <AppProviders>
+          <BffAuthSync />
+          <div className="flex h-screen w-full">
+            <Sidebar />
+            <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-slate-50">
+              <Topbar />
+              <main className="flex-1 overflow-auto relative p-6">
+                {children}
+                <CommandPalette />
+              </main>
             </div>
-          </AppProviders>
-        </body>
-      </ClerkProvider>
+          </div>
+        </AppProviders>
+      </body>
     </html>
   );
 }

@@ -5,20 +5,13 @@ import { useEffect } from "react";
 import { setClerkContext } from "@/api/client";
 
 export function BffAuthSync() {
-  const { user, isLoaded } = useUser();
+  // Temporary bypass: Clerk keys are missing on Vercel
+  // const { user, isLoaded } = useUser();
 
   useEffect(() => {
-    if (isLoaded) {
-      if (user) {
-        setClerkContext({
-          userId: user.id,
-          plan: (user.publicMetadata?.plan as string) || "free",
-        });
-      } else {
-        setClerkContext({});
-      }
-    }
-  }, [isLoaded, user]);
+    // Mocking logged out state
+    setClerkContext({});
+  }, []);
 
   return null;
 }
