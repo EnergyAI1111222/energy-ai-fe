@@ -5,7 +5,6 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { AppProviders } from "@/providers/AppProviders";
 import { CommandPalette } from "@/components/shared/CommandPalette";
-import { ClerkProvider } from "@clerk/nextjs";
 import { BffAuthSync } from "@/providers/BffAuthSync";
 
 const inter = Inter({

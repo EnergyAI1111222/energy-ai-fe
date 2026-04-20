@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+// import { useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 import { setClerkContext } from "@/api/client";
 
