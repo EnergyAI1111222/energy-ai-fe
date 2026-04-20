@@ -3,7 +3,7 @@ import { Search } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/store/useAppStore';
 import { useAuthProfile } from '@/hooks/useAuthProfile';
-import { UserButton } from '@clerk/nextjs';
+// import { UserButton } from '@clerk/nextjs';
 
 export function Topbar() {
   const router = useRouter();
@@ -84,7 +84,10 @@ export function Topbar() {
             </button>
           )}
 
-          <UserButton appearance={{ elements: { avatarBox: "h-8 w-8 rounded-xl border border-slate-200" } }} />
+          {/* Mock User Button to prevent Clerk context error */}
+          <div className="h-8 w-8 rounded-xl border border-slate-200 bg-slate-200 flex items-center justify-center text-slate-500 font-medium text-xs">
+            U
+          </div>
         </div>
       </div>
     </header>
